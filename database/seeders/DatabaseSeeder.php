@@ -7,7 +7,9 @@ namespace Database\Seeders;
 use App\Models\Cidade;
 use App\Models\Medico;
 use App\Models\Paciente;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,9 +18,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        Cidade::factory(10)->has(
-            Medico::factory(3)->has(
-                Paciente::factory(2)
+        $user = User::factory()->create([
+            'name' => 'Christian Ramires',
+            'email' => 'christian.ramires@example.com',
+            'password' => Hash::make('password')
+        ]);
+
+        $user->createToken("access_token");
+
+        Cidade::factory(20)->has(
+            Medico::factory(10)->has(
+                Paciente::factory(5)
             )
         )->create();
     }
