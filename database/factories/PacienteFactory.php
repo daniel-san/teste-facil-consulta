@@ -17,7 +17,9 @@ class PacienteFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'nome' => fake()->name(),
+            'cpf' => fake()->cpf(),
+            'celular' => fake()->cellPhoneNumber()
         ];
     }
 }

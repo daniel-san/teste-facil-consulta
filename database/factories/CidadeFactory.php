@@ -17,7 +17,8 @@ class CidadeFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'nome' => fake()->city(),
+            'estado' => fake()->state()
         ];
     }
 }
