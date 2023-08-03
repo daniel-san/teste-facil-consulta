@@ -1,66 +1,108 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Instalação
+Após clonar o projeto, instale as dependência utilizando o composer:
+```
+composer install
+```
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Configurando o ambiente
+Após instaladas as dependências, deve-se criar um novo arquivo `.env` copiando o arquivo `.env.example` e então gerar a chave da aplicação:
+```
+cp .env.example .env
+php artisan key:generate
+```
 
-## About Laravel
+Dentro do arquivo `.env` devem ser colocadas as informações necessárias para se conectar ao banco de dados mysql. Os dados abaixo são os dados padrão
+que o [Laravel Sail](https://github.com/laravel/sail) criou durante a instalação inicial do projeto:
+```
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=sail
+DB_PASSWORD=password
+```
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Docker e Laravel Sail
+O [Laravel Sail](https://github.com/laravel/sail) foi utilizado para criar os containers utilizados pela aplicação.
+Podemos usar o Sail para rodar comandos Artisan dentro do container da aplicação:
+```
+.vendor/bin/sail artisan migrate
+```
+Pode-se criar um alias para agilizar o uso do sail:
+```
+alias sail="bash ./vendor/bin/sail"
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Os comandos mostrados neste documento utilizarão o sail no lugar de utilizar o `docker-compose` diretamente.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+# Iniciando a aplicação
+A aplicação pode ser iniciada pelo `sail` utilizando o seguinte comando:
+```
+sail up
+ou
+sail up -d
+```
 
-## Learning Laravel
+Com isso os serviços `laravel.test`, que corresponde ao container principal da aplicação, e o container do `mysql` serão iniciados.
+A primeira execução desse comando pode demorar um pouco já que o docker precisará construir os containers. Caso o processo de build falhe,
+tente executar o comando novamente no caso do build ter falhado por causa de algum erro de rede.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Executando `sail` como usuário root com `sudo`
+Se o seu usuário não possuir permissões para executar o docker sem o `sudo`, a execução de comandos com o sail como root pode causar problemas
+com o container da aplicação relacionados a permissão de pastas. Neste caso, deve-se sobrescrever as variáveis `WWWUSER` e `WWWGROUP` no arquivo
+`.env` da seguinte maneira:
+```
+WWWUSER=1000 #execute 'echo $UID' para obter o id do seu usuário
+WWWGROUP=1000 #execute 'id -g' para obter o id do grupo do seu usuário
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Após isso execute o processo de build dos containers novamente:
+```
+sudo ./vendor/bin/sail build laravel.test mysql
+```
+Com isso a aplicação agora deve funcionar sem os problemas mencionados anteriormente.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Migrando a base de dados
+Continuando a instalação, migre a base de dados:
+```
+sail artisan migrate
+```
 
-## Laravel Sponsors
+## Configurando o Laravel Passport
+Após migrada a base de dados, devemos configurar o Laravel Passport para que possamos gerar tokens JWT que serão utilizados para autenticação:
+```
+sail artisan passport:install
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+## Populando a base de dados
+Após configurado o Passport, podemos executar o comando abaixo para popular a base de dados:
+```
+sail artisan db:seed
+```
 
-### Premium Partners
+# A API
+A url principal para acesso da API é a [http://localhost:80](http://localhost:80). Para testar a API, foi utilizada a seguinte [collection](https://www.postman.com/nova-versao-fc-teste/workspace/teste-facil-consulta/collection/23818071-1ee3f4ef-d351-45e2-a38f-1b4940c3ad58?action=share&creator=23818071) do Postman.
+Nesta collection estão disponíveis todas as rotas implementadas na aplicação, só sendo necessário a emissão de um token de autenticação com um usuário para poder acessar as rotas protegidas.
+Durante o processo de população da base de dados é criado o seguinte usuário de testes:
+```
+christian.ramires@example.com
+password
+```
+Caso se queira criar um novo usuário, pode-se fazer uma requisição post para a rota `api/register` na aplicação com um payload no seguinte formato:
+```json
+{
+    "name": "Christian Ramires",
+    "email": "christian.ramires@example.com",
+    "password": "password"
+}
+```
+Tendo as credenciais do usuário, pode-se fazer login e obter um token de autenticação fazendo uma requisição post para a rota `api/login`.
+Feito o login, o token de autenticação estará disponível no corpo da resposta.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Testes automatizados
+A suite de testes automatizados pode ser executado com o seguinte comando:
+```
+sail artisan test
+ou
+sail test
+```
