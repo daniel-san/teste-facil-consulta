@@ -29,8 +29,8 @@ class CidadeController extends Controller
             $cidade = Cidade::with('medicos')->findOrFail($id);
         } catch (ModelNotFoundException $e) {
             return response()->json([
-                'message' => 'cidade não encontrada'
-            ]);
+                'message' => __('messages.cidade.notfound')
+            ], 404);
         }
 
         MedicoResource::withoutWrapping();

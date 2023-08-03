@@ -12,4 +12,9 @@ class Cidade extends Model
     use HasFactory;
     use SoftDeletes;
     use HasManyMedicos;
+
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 }

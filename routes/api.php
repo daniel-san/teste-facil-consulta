@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CidadeController;
 use App\Http\Controllers\Api\MedicoController;
+use App\Http\Controllers\Api\PacienteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,5 +36,10 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/', [MedicoController::class, 'store'])->name('api.medicos.store');
         Route::get('/{id_medico}/pacientes', [MedicoController::class, 'pacientes'])->name('api.medicos.pacientes');
         Route::post('/{id_medico}/pacientes', [MedicoController::class, 'addPaciente'])->name('api.medicos.add.paciente');
+    });
+
+    Route::prefix('/pacientes')->group(function () {
+        Route::post('/', [PacienteController::class, 'store'])->name('api.pacientes.store');
+        Route::put('/{id_paciente}', [PacienteController::class, 'update'])->name('api.pacientes.update');
     });
 });

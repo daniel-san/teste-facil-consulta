@@ -56,7 +56,25 @@ class MedicoControllerTest extends TestCase
 
         $this->json('get', route('api.medicos.pacientes', [$medico->id]))
              ->assertUnauthorized();
+    }
 
+    public function testItReturnsStatusNotFoundIfRequestingPacientesFromANonExistantMedico()
+    {
+        $this->user = Passport::actingAs(
+            User::factory()->create(),
+            ['create-servers']
+        );
+
+        Cidade::factory(5)->has(
+            Medico::factory(10)->has(
+                Paciente::factory(3)
+            )
+        )->create();
+
+        $medico_id = 200;
+
+        $this->json('get', route('api.medicos.pacientes', [$medico_id]))
+             ->assertNotFound();
     }
 
     public function testItGetsAllPacientesForAGivenMedicoWhenAuthenticated()
@@ -89,7 +107,20 @@ class MedicoControllerTest extends TestCase
              ->assertJsonCount($medico->pacientes->count());
     }
 
-    public function testItStoresANewMedicoInTheDatabase()
+    public function testItRequiresAuthenticationToStoreNewMedico()
+    {
+        Cidade::factory(5)->create();
+        $cidade = Cidade::first();
+        $medico = Medico::factory()->raw(['nome', 'especialidade']);
+        $medico['cidade_id'] = $cidade->id;
+
+        $this->json('post', route('api.medicos.store'), $medico)
+             ->assertUnauthorized();
+
+        $this->assertDatabaseCount('medicos', 0);
+    }
+
+    public function testItStoresANewMedicoInTheDatabaseWhenAuthenticated()
     {
         $this->user = Passport::actingAs(
             User::factory()->create(),
@@ -112,7 +143,18 @@ class MedicoControllerTest extends TestCase
         $this->assertDatabaseCount('medicos', 1);
     }
 
-    public function testItAddsAPacienteToAMedico()
+    public function testItRequiresAuthenticationToAddPacienteToMedico()
+    {
+        $medico = Medico::factory()->has(Cidade::factory())->create();
+        $paciente = Paciente::factory()->create();
+
+        $this->json('post', route('api.medicos.add.paciente', $medico->id), ['medico_id' => $medico->id, 'paciente_id' => $paciente->id])
+              ->assertUnauthorized();
+
+        $this->assertDatabaseCount('medico_paciente', 0);
+    }
+
+    public function testItAddsAPacienteToAMedicoWhenAuthenticated()
     {
         $this->user = Passport::actingAs(
             User::factory()->create(),

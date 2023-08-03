@@ -33,8 +33,8 @@ class MedicoController extends Controller
             $medico = Medico::with('pacientes')->findOrFail($id);
         } catch (ModelNotFoundException $e) {
             return response()->json([
-                'message' => 'medico não encontrado'
-            ]);
+                'message' => __('messages.medico.notfound')
+            ], 404);
         }
 
         PacienteResource::withoutWrapping();

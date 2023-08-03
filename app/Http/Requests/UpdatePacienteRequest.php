@@ -2,11 +2,10 @@
 
 namespace App\Http\Requests;
 
-use App\Rules\Cpf;
 use App\Rules\Phone;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StorePacienteRequest extends FormRequest
+class UpdatePacienteRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,7 +24,6 @@ class StorePacienteRequest extends FormRequest
     {
         return [
             'nome' => ['required', 'string'],
-            'cpf' => ['required', new Cpf()],
             'celular' => ['required', new Phone()]
         ];
     }
