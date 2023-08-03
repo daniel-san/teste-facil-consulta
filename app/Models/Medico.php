@@ -14,6 +14,16 @@ class Medico extends Model
     use SoftDeletes;
     use BelongsToCidade;
 
+    protected $fillable = [
+        'nome',
+        'especialidade'
+    ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     public function pacientes(): BelongsToMany
     {
         return $this->belongsToMany(Paciente::class)

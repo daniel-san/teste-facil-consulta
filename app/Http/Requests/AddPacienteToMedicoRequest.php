@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreMedicoRequest extends FormRequest
+class AddPacienteToMedicoRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,9 +23,8 @@ class StoreMedicoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome' => ['required', 'string'],
-            'especialidade' => ['required', 'string'],
-            'cidade_id' => ['required', Rule::exists('cidades', 'id')->whereNull('deleted_at')]
+            'medico_id' => ['required', Rule::exists('medicos', 'id')->whereNull('deleted_at')],
+            'paciente_id' => ['required', Rule::exists('pacientes', 'id')->whereNull('deleted_at')],
         ];
     }
 }
